@@ -77,27 +77,75 @@
                   <label for="attempt">Word:</label>
                   <input id="attempt" name="attempt" type="text" width="15"
                      autocomplete="off"  autofocus />
-                  <input type="submit" name="try" />
+                  <!-- <input type="submit" name="try" /> -->
                </form>
             </div>
          </div>
          <br />
-         {% if session.matches|length is not equalto 0  %}
+
+         <script>
+
+            $("entry").submit( function(event) {
+               event.preventDefault();
+              });
+   
+            $("#attempt").keyup(function(event) {
+               
+               var txt = $("#attempt").val();
+               
+               var keycode = event.which;
+   
+               var letter = String.fromCharCode(keycode);
+   
+               if (! "ABCDEFGHIJKLMOPQRSTUVWXYZ".includes(letter)) { return }
+   
+               $.getJSON("/_check", { text: txt },
+   
+                       function(data) {
+                           
+                           rsval = data.output.result;
+   
+                           if(rsval === true) {
+                              
+                              $("#results").append(txt + " ");
+   
+                              $("#attempt").val("");
+   
+                              $("#response").text("");
+                           }
+   
+                           else if(rsval === "already_found") {
+   
+                              $("#results").text("You have already found " + txt);
+                           }
+   
+                           else if(rsval === "not_found") {
+   
+                              $("#results").text(txt + " is not in the list of words!");
+                           }
+   
+                           else if(rsval === "cannot_be_made") {
+   
+                              $("#results").text(txt + " cannot be made!");
+                           }
+                               
+                           else if(rsval === "target_number_reached") {
+   
+                              var url = "/success";
+   
+                              $(location).attr('href', url);
+   
+                           }
+                        }
+                     );   
+               });
+   
+            </script>
+
          <h2>You found </h2>
          <p id="results">
-            {% for match in session.matches %}
-            {{ match }}
-            {% endfor %}
          </p>
-         {% endif %}
-         {% with messages = get_flashed_messages() %}
-         {% if messages %}
-         <!-- Mismatch, already found, etc. "flashed" from Python -->
-         {% for message in messages %}
          <p class="message">{{ message }}</p>
-         {% endfor %}
-         {% endif %}
-         {% endwith %}
       </div>
       <!-- container -->
    </body>
